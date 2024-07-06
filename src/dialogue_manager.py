@@ -11,8 +11,23 @@ class DialogueManager:
         intent = self.model.predict(X)[0]
         return intent
 
-    def handle_intent(self, intent):
-        return generate_response(intent)
+    def handle_intent(intent, entities):
+        try:
+            if intent == 'weather_query':
+                location = next((entity['value'] for entity in entities if entity['entity'] == 'location'), None)
+                if not location:
+                    raise ValueError("Location not provided")
+                return f"Fetching weather for {location}..."
+            elif intent == 'flight_booking':
+                destination = next((entity['value'] for entity in entities if entity['entity'] == 'location'), None)
+                date = next((entity['value'] for entity in entities if entity['entity'] == 'date'), None)
+                if not destination or not date:
+                    raise ValueError("Destination or date not provided")
+                return f"Booking a flight to {destination} on {date}."
+            else:
+                return "I'm not sure how to help with that."
+        except Exception as e:
+            return str(e)
 
 if __name__ == "__main__":
     manager = DialogueManager()

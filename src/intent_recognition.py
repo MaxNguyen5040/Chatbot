@@ -1,6 +1,15 @@
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import pickle
+from rasa_nlu.model import Interpreter
+
+interpreter = Interpreter.load("models/nlu")
+
+def recognize_intent(user_message):
+    result = interpreter.parse(user_message)
+    intent = result['intent']['name']
+    entities = result['entities']
+    return intent, entities
 
 def train_intent_recognizer(data):
     questions, intents, label_encoder = preprocess_data(data)
@@ -19,7 +28,12 @@ if __name__ == "__main__":
         ("Where is your office located?", "office_location"),
         ("Do you offer support?", "support_offering")
     ]
-    vectorizer, model, label_encoder = train_intent_recognizer(data)
-    with open('../models/intent_recognizer.pkl', 'wb') as f:
-        pickle.dump((vectorizer, model, label_encoder), f)
+    # vectorizer, model, label_encoder = train_intent_recognizer(data)
+    # with open('../models/intent_recognizer.pkl', 'wb') as f:
+    #     pickle.dump((vectorizer, model, label_encoder), f)
+
+    result = recognize_intent(data)
+    print(result)
+
+
 
