@@ -3,12 +3,12 @@ from sklearn.naive_bayes import MultinomialNB
 import pickle
 
 def train_intent_recognizer(data):
-    questions, intents = zip(*data)
+    questions, intents, label_encoder = preprocess_data(data)
     vectorizer = CountVectorizer()
     X = vectorizer.fit_transform(questions)
     model = MultinomialNB()
     model.fit(X, intents)
-    return vectorizer, model
+    return vectorizer, model, label_encoder
 
 if __name__ == "__main__":
     data = [
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         ("Where is your office located?", "office_location"),
         ("Do you offer support?", "support_offering")
     ]
-    vectorizer, model = train_intent_recognizer(data)
+    vectorizer, model, label_encoder = train_intent_recognizer(data)
     with open('../models/intent_recognizer.pkl', 'wb') as f:
-        pickle.dump((vectorizer, model), f)
+        pickle.dump((vectorizer, model, label_encoder), f)
 
