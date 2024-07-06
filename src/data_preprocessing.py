@@ -1,10 +1,5 @@
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-import string
-
-nltk.download('punkt')
-nltk.download('stopwords')
+from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
 def preprocess_text(text):
     text = text.lower()
@@ -13,6 +8,18 @@ def preprocess_text(text):
     tokens = [word for word in tokens if word not in stopwords.words('english')]
     return tokens
 
+def preprocess_data(data):
+    questions, intents = zip(*data)
+    processed_questions = [" ".join(preprocess_text(question)) for question in questions]
+    label_encoder = LabelEncoder()
+    encoded_intents = label_encoder.fit_transform(intents)
+    return processed_questions, encoded_intents, label_encoder
+
 if __name__ == "__main__":
-    sample_text = "Hello! How can I help you today?"
-    print(preprocess_text(sample_text))
+    data = [
+        ("What are your operating hours?", "operating_hours"),
+        ("How can I reset my password?", "reset_password")
+    ]
+    processed_questions, encoded_intents, label_encoder = preprocess_data(data)
+    print(processed_questions)
+    print(encoded_intents)
