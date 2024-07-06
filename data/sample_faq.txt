@@ -1,0 +1,5 @@
+Q: What are your operating hours?
+A: Our operating hours are from 9 AM to 5 PM, Monday to Friday.
+
+Q: How can I reset my password?
+A: You can reset your password by clicking on the 'Forgot Password' link on the login page.
