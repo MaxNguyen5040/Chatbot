@@ -13,8 +13,13 @@ def train_intent_recognizer(data):
 if __name__ == "__main__":
     data = [
         ("What are your operating hours?", "operating_hours"),
-        ("How can I reset my password?", "reset_password")
+        ("How can I reset my password?", "reset_password"),
+        ("What is your pricing?", "pricing"),
+        ("How can I contact you?", "contact_info"),
+        ("Where is your office located?", "office_location"),
+        ("Do you offer support?", "support_offering")
     ]
     vectorizer, model = train_intent_recognizer(data)
     with open('../models/intent_recognizer.pkl', 'wb') as f:
         pickle.dump((vectorizer, model), f)
+
