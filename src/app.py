@@ -86,6 +86,18 @@ def update_profile():
         return redirect(url_for('profile', username=user.username))
     return render_template('update_profile.html', user=user)
 
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if request.method == 'POST':
+        username = request.form['username']
+        user = User.query.filter_by(username=username).first()
+        if user:
+            new_password = generate_password_hash(request.form['password'], method='sha256')
+            user.password = new_password
+            db.session.commit()
+            return redirect(url_for('login'))
+    return render_template('reset_password.html')
+
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
