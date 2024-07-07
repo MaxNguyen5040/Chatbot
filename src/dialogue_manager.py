@@ -29,6 +29,13 @@ class DialogueManager:
         except Exception as e:
             return str(e)
 
+    def generate_response(intent, entities):
+        if intent == 'greeting':
+            return "Hello! How can I assist you today?"
+        elif intent == 'goodbye':
+            return "Goodbye! Have a great day!"
+        else:
+            return handle_intent(intent, entities)
 if __name__ == "__main__":
     manager = DialogueManager()
     print(manager.handle_intent(manager.recognize_intent("What is your pricing?")))
