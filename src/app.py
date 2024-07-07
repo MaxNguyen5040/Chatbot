@@ -3,7 +3,7 @@ from dialogue_manager import DialogueManager
 from googletrans import Translator
 from textblob import TextBlob
 from transformers import pipeline
-from dash import bootstrap_components
+import dash_bootstrap_components as dbc
 
 translator = Translator()
 app = Flask(__name__)
@@ -16,23 +16,22 @@ knowledge_base = {
 }
 
 app.layout = html.Div([
-    dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': [1, 2, 3, 4, 5], 'y': [10, 11, 12, 13, 14], 'type': 'line', 'name': 'Sample Data'},
-            ],
-            'layout': {
-                'title': 'Chatbot Interaction Analytics'
-            }
-        }
-    ),
-    dcc.Interval(
-        id='interval-component',
-        interval=1*1000,  # in milliseconds
-        n_intervals=0
-    ),
-    html.Div(id='live-update-text')
+    dcc.Input(id='input-box', type='text', value=''),
+    html.Button('Submit', id='button'),
+    html.Div(id='output-container-button', children='Enter a value and press submit'),
+
+    dbc.Button("Click me", color="primary", className="mr-1"),
+    dbc.Carousel(
+        items=[
+            {"key": "1", "src": "/assets/image1.jpg", "header": "Header 1", "caption": "Caption 1"},
+            {"key": "2", "src": "/assets/image2.jpg", "header": "Header 2", "caption": "Caption 2"},
+            {"key": "3", "src": "/assets/image3.jpg", "header": "Header 3", "caption": "Caption 3"},
+        ],
+        controls=True,
+        indicators=True,
+        interval=2000,
+        ride="carousel"
+    )
 ])
 
 def get_user_message(request):
@@ -91,6 +90,15 @@ def update_user_profile(user_id, profile_data):
 def get_user_profile(user_id):
     return user_profiles.get(user_id, {})
 
+@app.callback(
+    Output('output-container-button', 'children'),
+    [Input('button', 'n_clicks')],
+    [State('input-box', 'value')]
+)
+
+def update_output(n_clicks, value):
+    if n_clicks is not None:
+        return f'The input value was "{value}" and the button has been clicked {n_clicks} times.'
 
 @app.callback(
     Output('output-container-button', 'children'),
