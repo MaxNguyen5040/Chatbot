@@ -7,6 +7,9 @@ import dash_bootstrap_components as dbc
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from gtts import gTTS
+from playsound import playsound
+import os
 
 translator = Translator()
 app = Flask(__name__)
@@ -25,6 +28,16 @@ class User(db.Model):
     password = db.Column(db.String(150), nullable=False)
 
 db.create_all()
+
+@app.route('/voice_message', methods=['POST'])
+def voice_message():
+    message = request.form['message']
+    tts = gTTS(message, lang='en')
+    filename = 'voice_message.mp3'
+    tts.save(filename)
+    playsound(filename)
+    os.remove(filename)
+    return jsonify({'status': 'success'})
 
 @app.route('/sentiment_dashboard')
 def sentiment_dashboard():
