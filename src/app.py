@@ -26,6 +26,39 @@ class User(db.Model):
 
 db.create_all()
 
+@app.route('/sentiment_dashboard')
+def sentiment_dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user_id = session['user_id']
+    chat_history = ChatHistory.query.filter_by(user_id=user_id).all()
+    sentiments = [analyze_sentiment(chat.message) for chat in chat_history]
+    return render_template('sentiment_dashboard.html', sentiments=sentiments)
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    user_message = request.form['message']
+    if 'user_id' in session:
+        user_id = session['user_id']
+        new_chat = ChatHistory(user_id=user_id, message=user_message)
+        db.session.add(new_chat)
+        db.session.commit()
+    return jsonify({'status': 'success', 'message': 'Message sent!'})
+
+class ChatHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.String(500), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+@app.route('/chat_history')
+def chat_history():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user_id = session['user_id']
+    chat_history = ChatHistory.query.filter_by(user_id=user_id).order_by(ChatHistory.timestamp.desc()).all()
+    return render_template('chat_history.html', chat_history=chat_history)
+
 app.layout = html.Div([
     dcc.Input(id='input-box', type='text', value=''),
     html.Button('Submit', id='button'),

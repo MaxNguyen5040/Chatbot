@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block title %}Chat History{% endblock %}
+
+{% block content %}
+<h1>Chat History</h1>
+<ul class="list-group">
+    {% for chat in chat_history %}
+        <li class="list-group-item">
+            <strong>{{ chat.timestamp }}:</strong> {{ chat.message }}
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}
