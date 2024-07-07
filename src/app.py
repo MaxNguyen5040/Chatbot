@@ -65,6 +65,42 @@ def generate_response(message):
     else:
         return 'I\'m sorry, I didn\'t quite understand that. How can I assist you?'
 
+def recognize_image(image_url):
+    api_url = f'https://vision.googleapis.com/v1/images:annotate?key={google_api_key}'
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        'requests': [
+            {
+                'image': {'source': {'imageUri': image_url}},
+                'features': [{'type': 'LABEL_DETECTION'}]
+            }
+        ]
+    }
+    
+    response = requests.post(api_url, headers=headers, json=data)
+    labels = response.json()['responses'][0]['labelAnnotations']
+    labels = [label['description'] for label in labels]
+    
+    return labels
+
+@app.route('/analyze_image', methods=['POST'])
+def analyze_image():
+    data = request.json
+    image_url = data['image_url']
+    
+    labels = recognize_image(image_url)
+    return jsonify({'labels': labels}), 200
+
+@app.route('/post_tweet', methods=['POST'])
+def post_tweet():
+    data = request.json
+    tweet_text = data['tweet_text']
+    
+    try:
+        api.update_status(tweet_text)
+        return jsonify({'message': 'Tweet posted successfully'}), 200
+    except tweepy.TweepError as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/voice_message', methods=['POST'])
 def voice_message():
