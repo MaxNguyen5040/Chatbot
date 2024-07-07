@@ -4,6 +4,9 @@ from googletrans import Translator
 from textblob import TextBlob
 from transformers import pipeline
 import dash_bootstrap_components as dbc
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 translator = Translator()
 app = Flask(__name__)
@@ -14,6 +17,14 @@ knowledge_base = {
     "what is your name": "I am your friendly chatbot!",
     "how can you help me": "I can assist you with weather updates, booking flights, and much more."
 }
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+db.create_all()
 
 app.layout = html.Div([
     dcc.Input(id='input-box', type='text', value=''),
@@ -33,6 +44,34 @@ app.layout = html.Div([
         ride="carousel"
     )
 ])
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = generate_password_hash(password, method='sha256')
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            return redirect(url_for('index'))
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('index'))
 
 def get_user_message(request):
     return request.json.get('message')
