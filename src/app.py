@@ -76,6 +76,21 @@ def handle_intent(intent, entities):
 def update_metrics(n):
     return f"Number of interactions: {n}"
 
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    user_id = request.json.get('user_id')
+    rating = request.json.get('rating')
+    feedback_data.append({'user_id': user_id, 'rating': rating})
+    return jsonify({'message': 'Feedback received, thank you!'})
+
+def update_user_profile(user_id, profile_data):
+    if user_id not in user_profiles:
+        user_profiles[user_id] = {}
+    user_profiles[user_id].update(profile_data)
+
+def get_user_profile(user_id):
+    return user_profiles.get(user_id, {})
+
 
 @app.callback(
     Output('output-container-button', 'children'),
