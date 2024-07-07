@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="profile-container">
+        <h1>{{ user.name }}'s Profile</h1>
+        <h2>Interaction History</h2>
+        <ul>
+            {% for interaction in user.history %}
+                <li>{{ interaction.date }}: {{ interaction.interaction }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

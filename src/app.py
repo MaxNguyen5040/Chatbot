@@ -96,6 +96,11 @@ def get_user_profile(user_id):
     [State('input-box', 'value')]
 )
 
+@app.route('/profile/<username>')
+def profile(username):
+    user = user_data.get(username, {'name': 'Unknown', 'history': []})
+    return render_template('profile.html', user=user)
+
 def update_output(n_clicks, value):
     if n_clicks is not None:
         return f'The input value was "{value}" and the button has been clicked {n_clicks} times.'
