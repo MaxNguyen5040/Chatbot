@@ -83,6 +83,40 @@ def recognize_image(image_url):
     
     return labels
 
+@app.route('/start_conversation', methods=['POST'])
+def start_conversation():
+    session['conversation_history'] = []
+    return jsonify({'message': 'Conversation started'}), 200
+
+@app.route('/continue_conversation', methods=['POST'])
+def continue_conversation():
+    data = request.json
+    user_input = data['user_input']
+    
+    conversation_history = session.get('conversation_history', [])
+    conversation_history.append(user_input)
+    session['conversation_history'] = conversation_history
+    
+    # Process user input and generate response based on conversation history
+    response = generate_response(conversation_history)
+    
+    return jsonify({'response': response}), 200
+
+@app.route('/analytics', methods=['GET'])
+def analytics():
+    analytics_data = {
+        'total_users': 1000,
+        'active_users': 500,
+        'new_signups_today': 20
+    }
+    return jsonify(analytics_data), 200
+
+@app.route('/feedback', methods=['POST'])
+def collect_feedback():
+    data = request.json
+    feedback = data['feedback']    
+    return jsonify({'message': 'Feedback received successfully'}), 201
+
 @app.route('/analyze_image', methods=['POST'])
 def analyze_image():
     data = request.json
