@@ -16,23 +16,66 @@ knowledge_base = {
 }
 
 app.layout = html.Div([
-    dcc.Input(id='input-box', type='text', value=''),
-    html.Button('Submit', id='button'),
-    html.Div(id='output-container-button', children='Enter a value and press submit'),
-
-    dbc.Button("Click me", color="primary", className="mr-1"),
-    dbc.Carousel(
-        items=[
-            {"key": "1", "src": "/assets/image1.jpg", "header": "Header 1", "caption": "Caption 1"},
-            {"key": "2", "src": "/assets/image2.jpg", "header": "Header 2", "caption": "Caption 2"},
-            {"key": "3", "src": "/assets/image3.jpg", "header": "Header 3", "caption": "Caption 3"},
-        ],
-        controls=True,
-        indicators=True,
-        interval=2000,
-        ride="carousel"
-    )
+    dcc.Graph(
+        id='example-graph',
+        figure={
+            'data': [
+                {'x': [1, 2, 3, 4, 5], 'y': [10, 11, 12, 13, 14], 'type': 'line', 'name': 'Sample Data'},
+            ],
+            'layout': {
+                'title': 'Chatbot Interaction Analytics'
+            }
+        }
+    ),
+    dcc.Interval(
+        id='interval-component',
+        interval=1*1000,  # in milliseconds
+        n_intervals=0
+    ),
+    html.Div(id='live-update-text')
 ])
+
+def get_user_message(request):
+    return request.json.get('message')
+
+def translate_and_analyze(user_message):
+    translated_message = translate_message(user_message, target_lang='en')
+    intent, entities = recognize_intent(translated_message)
+    advanced_intent = advanced_intent_recognition(translated_message)
+    sentiment_polarity, sentiment_subjectivity = analyze_sentiment(translated_message)
+    knowledge_base_response = query_knowledge_base(translated_message)
+    return translated_message, intent, entities, advanced_intent, sentiment_polarity, sentiment_subjectivity, knowledge_base_response
+
+def translate_message(user_message, target_lang='en'):
+    try:
+        translation = translator.translate(user_message, dest=target_lang)
+        return translation.text
+    except Exception as e:
+        return f"Error translating message: {str(e)}"
+
+def handle_intent(intent, entities):
+    try:
+        if intent == 'weather_query':
+            location = next((entity['value'] for entity in entities if entity['entity'] == 'location'), None)
+            if not location:
+                raise ValueError("Location not provided")
+            return get_weather(location)
+        elif intent == 'flight_booking':
+            destination = next((entity['value'] for entity in entities if entity['entity'] == 'location'), None)
+            date = next((entity['value'] for entity in entities if entity['entity'] == 'date'), None)
+            if not destination or not date:
+                raise ValueError("Destination or date not provided")
+            return f"Booking a flight to {destination} on {date}."
+        else:
+            return "I'm not sure how to help with that."
+    except Exception as e:
+        return f"Error handling intent: {str(e)}"
+
+@app.callback(Output('live-update-text', 'children'),
+              Input('interval-component', 'n_intervals'))
+def update_metrics(n):
+    return f"Number of interactions: {n}"
+
 
 @app.callback(
     Output('output-container-button', 'children'),
