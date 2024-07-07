@@ -10,6 +10,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from gtts import gTTS
 from playsound import playsound
 import os
+import nltk
+from nltk.corpus import stopwords
 
 translator = Translator()
 app = Flask(__name__)
@@ -24,10 +26,45 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(80), nullable=False)
+    context = db.Column(db.String(200))  # Store context data
 
-db.create_all()
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # Add more fields as needed
+
+
+@app.route('/add_task', methods=['POST'])
+def add_task():
+    data = request.json
+    title = data['title']
+    description = data['description']
+    user_id = data['user_id']
+    
+    new_task = Task(title=title, description=description, user_id=user_id)
+    db.session.add(new_task)
+    db.session.commit()
+    
+    return jsonify({'message': 'Task added successfully'}), 201
+
+def generate_response(message):
+    stop_words = set(stopwords.words('english'))
+    words = nltk.word_tokenize(message.lower())
+    filtered_words = [word for word in words if word.isalnum() and word not in stop_words]
+    
+    # Example: Generate response based on keywords
+    if 'weather' in filtered_words:
+        return 'The weather today is sunny and warm.'
+    elif 'news' in filtered_words:
+        return 'Here are the latest news headlines...'
+    else:
+        return 'I\'m sorry, I didn\'t quite understand that. How can I assist you?'
+
 
 @app.route('/voice_message', methods=['POST'])
 def voice_message():
@@ -229,7 +266,6 @@ def update_output(n_clicks, value):
     if n_clicks is not None:
         return f'The input value was "{value}" and the button has been clicked {n_clicks} times.'
 
-
 def query_knowledge_base(user_message):
     question = user_message.lower()
     return knowledge_base.get(question, "I'm not sure about that. Can you please rephrase?")
@@ -243,7 +279,6 @@ def advanced_intent_recognition(user_message):
     result = nlp(qa_input)
     return result['answer']
 
-
 @app.route('/chat', methods=['POST'])
 def chat():
     user_id = request.json.get('user_id')
@@ -256,10 +291,6 @@ def chat():
     response = handle_intent(intent, entities)
     update_user_preferences(user_id, 'last_message', user_message)
     return jsonify({'response': response, 'knowledge_base_response': knowledge_base_response, 'advanced_intent': advanced_intent, 'sentiment_polarity': sentiment_polarity, 'sentiment_subjectivity': sentiment_subjectivity, 'user_preferences': get_user_preferences(user_id)})
-
-user_message = "What is the weather like in Paris?"
-advanced_intent = advanced_intent_recognition(user_message)
-print(advanced_intent)
 
 def update_user_preferences(user_id, key, value):
     if user_id not in user_preferences:
@@ -302,7 +333,4 @@ def chat():
     update_user_preferences(user_id, 'last_message', user_message)
     return jsonify({'response': response, 'sentiment_polarity': sentiment_polarity, 'sentiment_subjectivity': sentiment_subjectivity, 'user_preferences': get_user_preferences(user_id)})
 
-user_id = "user123"
-user_message = "I love sunny weather!"
-update_user_preferences(user_id, 'favorite_weather', 'sunny')
-print(get_user_preferences(user_id))
+db.create_all()
