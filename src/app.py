@@ -68,6 +68,24 @@ def login():
             return redirect(url_for('index'))
     return render_template('login.html')
 
+@app.route('/profile/<username>')
+def profile(username):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = user_data.get(username, {'name': 'Unknown', 'history': []})
+    return render_template('profile.html', user=user)
+
+@app.route('/update_profile', methods=['GET', 'POST'])
+def update_profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    if request.method == 'POST':
+        user.username = request.form['username']
+        db.session.commit()
+        return redirect(url_for('profile', username=user.username))
+    return render_template('update_profile.html', user=user)
+
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
